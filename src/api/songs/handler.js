@@ -28,7 +28,7 @@ class SongsHandler {
     } else {
       songs = await this._service.getSongs();
     }
-    console.log('masuk 3');
+    
     const response = h.response({
       status: 'success',
       data: {
