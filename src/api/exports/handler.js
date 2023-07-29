@@ -18,7 +18,7 @@ class ExportsHandler {
       status: 'succes',
       message: 'Permintaan Anda sedang kami proses',
     });
-    response.code(200);
+    response.code(201);
     return response;
   }
 }
