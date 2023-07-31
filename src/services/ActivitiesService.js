@@ -18,7 +18,7 @@ class ActivitiesService {
     };
     const result = await this._pool.query(query);
     
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new InvariantError('gagal insert activity');
     }
   }
@@ -30,7 +30,7 @@ class ActivitiesService {
     };
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('tidak ditemukan aktifitas');
     }
     return result.rows;

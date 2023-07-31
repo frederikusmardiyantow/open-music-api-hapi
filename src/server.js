@@ -2,6 +2,8 @@ require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
+const Inert = require('@hapi/inert');
+const path = require('path');
 const ClientError = require('./exceptions/ClientError');
 
 const albums = require('./api/albums');
@@ -33,20 +35,30 @@ const activities = require('./api/activities');
 const _exports = require('./api/exports');
 const ProducerService = require('./services/rabbitmq/ProducerService');
 const ExportValidator = require('./validator/exports');
+const StorageService = require('./services/storage/StorageService');
+const uploads = require('./api/uploads');
+const UploadsValidator = require('./validator/uploads');
+const userAlbumLikes = require('./api/userAlbumLikes');
+const UserAlbumLikesService = require('./services/UserAlbumLikesService');
+const CacheService = require('./services/redis/CacheService');
+const config = require('./utils/config');
 
 const init = async () => {
-  const songsService = new SongsService();
-  const albumsService = new AlbumsService(songsService);
+  const cacheService = new CacheService();
+  const songsService = new SongsService(cacheService);
+  const albumsService = new AlbumsService(songsService, cacheService);
   const usersService = new UsersService();
   const authenticationsService = new AuthenticationsService();
   const collaborationsService = new CollaborationsService();
   const playlistsService = new PlaylistsService(collaborationsService);
-  const bridgesService = new BridgesService();
+  const bridgesService = new BridgesService(cacheService);
   const activitiesService = new ActivitiesService();
+  const storageService = new StorageService(path.resolve(__dirname, 'api/uploads/file/coverAlbum'));
+  const userAlbumLikesService = new UserAlbumLikesService(cacheService);
 
   const server = Hapi.server({
-    port: process.env.PORT,
-    host: process.env.HOST,
+    port: config.app.port,
+    host: config.app.host,
     routes: {
       cors: {
         origin: ['*'],
@@ -59,16 +71,19 @@ const init = async () => {
     {
       plugin: Jwt,
     },
+    {
+      plugin: Inert,
+    },
   ]);
 
   // mendefinisikan strategy autentikasi jwt
   server.auth.strategy('playlist_jwt', 'jwt', {
-    keys: process.env.ACCESS_TOKEN_KEY,
+    keys: config.token.access,
     verify: {
       aud: false,
       iss: false,
       sub: false,
-      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+      maxAgeSec: config.token.age,
     },
     validate: (artifacts) => ({
       isValid: true,
@@ -145,6 +160,22 @@ const init = async () => {
       options: {
         service: ProducerService,
         validator: ExportValidator,
+        playlistsService,
+      },
+    },
+    {
+      plugin: uploads,
+      options: {
+        storageService,
+        albumsService,
+        uploadsValidator: UploadsValidator,
+      },
+    },
+    {
+      plugin: userAlbumLikes,
+      options: {
+        service: userAlbumLikesService,
+        albumService: albumsService,
       },
     },
   ]);

@@ -18,3 +18,10 @@
 4. Penerapan Data Validation resource authentications, playlists, users, n bridges(junction)
 5. Fitur kolaborator playlist
 6. Fitur Playlist Activities 
+
+### version 3.0
+1. Ekspor Lagu Pada Playlist with RabbitMQ
+2. Mengunggah Sampul Album with fs and inert
+3. Menyukai Album
+4. Menerapkan Server-Side Cache with redis (memurai in windows)
+5. Mempertahankan Fitur OpenMusic API versi 2 dan 1

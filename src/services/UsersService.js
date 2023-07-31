@@ -36,7 +36,7 @@ class UsersService {
     };
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('user tidak ditemukan');
     }
   }
@@ -48,7 +48,7 @@ class UsersService {
     };
     const result = await this._pool.query(query);
 
-    if (result.rows.length > 0) {
+    if (result.rowCount > 0) {
       throw new InvariantError('Username sudah digunakan');
     }
   }
@@ -60,7 +60,7 @@ class UsersService {
     };
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new AuthenticationError('Kredential salah');
     }
 

@@ -18,7 +18,7 @@ class PlaylistsService {
     };
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new InvariantError('Gagal Insert Data Playlist');
     }
 
@@ -26,13 +26,18 @@ class PlaylistsService {
   }
 
   async getPlaylists(owner) {
-    const query = {
-      text: 'SELECT p.id, p.name, u.username FROM playlists p JOIN users u ON (p.owner = u.id) LEFT JOIN collaborations c ON (c.playlist_id = p.id) WHERE p.owner = $1 OR c.user_id = $1',
-      values: [owner],
-    };
-    const result = await this._pool.query(query);
-
-    return result.rows;
+    try {
+      const result = await this._cacheService.get(`list_playlists:${owner}`); console.log('masuk');
+      return JSON.parse(result);
+    } catch (error) {
+      const query = {
+        text: 'SELECT p.id, p.name, u.username FROM playlists p JOIN users u ON (p.owner = u.id) LEFT JOIN collaborations c ON (c.playlist_id = p.id) WHERE p.owner = $1 OR c.user_id = $1',
+        values: [owner],
+      };
+      const result = await this._pool.query(query);
+  
+      return result.rows;
+    }
   }
 
   async getPlaylistById(id) {
@@ -42,19 +47,19 @@ class PlaylistsService {
     };
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('playlist tidak ditemukan');
     }
   }
 
   async deletePlaylistById(id) {
     const query = {
-      text: 'DELETE FROM playlists WHERE id = $1 RETURNING ID',
+      text: 'DELETE FROM playlists WHERE id = $1 RETURNING owner',
       values: [id],
     };
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('Gagal delete. Id Playlist tidak ditemukan');
     }
   }
@@ -66,7 +71,7 @@ class PlaylistsService {
     };
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('data tidak ditemukan');
     }
 

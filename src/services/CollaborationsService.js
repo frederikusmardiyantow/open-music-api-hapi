@@ -16,7 +16,7 @@ class CollaborationsService {
     };
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new InvariantError('gagal menambahkan kolaborasi');
     }
     return result.rows[0].id;
@@ -41,7 +41,7 @@ class CollaborationsService {
     };
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new InvariantError('gagal verifikasi');
     }
   }
